@@ -61,6 +61,7 @@ class StreamlitChatHandler:
         self.session_state = session_state
         self.session_id = session_id
         self._init_session_state()
+        self.rendered_elements: OrderedDict[str, Any] | None = None
 
     def append(
         self,
@@ -71,7 +72,7 @@ class StreamlitChatHandler:
         render: bool = False,
         *args,
         **kwargs
-    ) -> None:
+    ) -> Any | None:
         """Append a new chat element to the session state.
 
         Args:
@@ -98,16 +99,16 @@ class StreamlitChatHandler:
         self.session_state[self.elements_label][index] = chat_element
 
         if render:
-            chat_element.render()
+            return chat_element.render()
 
     def render_last(self) -> None:
         """Render the last added chat element."""
-        *_, last_element = _get_last_item(self.session_state[self.elements_label])
-        last_element.render()
+        last_key, last_element = _get_last_item(self.session_state[self.elements_label])
+        self.rendered_elements[last_key] = last_element.render()
 
     def render(self) -> "StreamlitChatHandler":
         """Render all chat elements in the session."""
-        self._render_elements(self.session_state[self.elements_label])
+        self.rendered_elements = self._render_elements(self.session_state[self.elements_label])
         return self
 
     def _init_session_state(self) -> None:
