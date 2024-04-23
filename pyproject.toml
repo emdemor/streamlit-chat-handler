@@ -1,0 +1,59 @@
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "streamlit_chat_handler"
+description = "..."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {file = "LICENSE.txt"}
+keywords = ["sample", "setuptools", "development"]
+authors = [
+  {name = "Eduardo Messias de Morais", email = "emdemor415@gmail.com" },
+]
+version = "0.0.1"
+dynamic = ["dependencies"]
+
+[project.optional-dependencies]
+lint = [
+    "black==23.7.0",
+    "flake8==6.1.0",
+    "Flake8-pyproject==1.2.3",
+    "mypy==1.4.1",
+    "bandit==1.7.5",
+]
+test = [
+    "pytest==7.4.0",
+    "pytest-cov==4.1.0",
+    "pytest-mock==3.11.1",
+    "pytest-mypy==0.10.3",
+]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
+[tool.setuptools.package-data]
+"csv_explorer_ui.assets" = ["*"]
+"csv_explorer.examples" = ["*"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[tool.mypy]
+cache_dir = "/tmp/mypy_cache"
+ignore_missing_imports = true
+
+[tool.flake8]
+max-line-length = 120
+ignore = ["D203", "W504"]
+per-file-ignores = ["sample/module.py:E501"]
+
+[tool.back]
+target-version = ["py311"]
+line-length = 120
+extend-ignore = ["D203", "W504"]
+
+[tool.pytest.ini_options]
+addopts = "-p no:cacheprovider -vvv --durations=0 --disable-warnings --cov --cov-report term-missing"
