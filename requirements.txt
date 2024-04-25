@@ -3,6 +3,7 @@ streamlit-chat==0.1.1
 streamlit-extras==0.4.2
 streamlit-feedback==0.1.3
 pydantic==2.7.0
+loguru
 # pandas==2.1.4
 # loguru==0.7.2
 # streamlit-authenticator==0.2.3

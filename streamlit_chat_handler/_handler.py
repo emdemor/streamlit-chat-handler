@@ -3,6 +3,7 @@ from typing import Any, Literal, Tuple
 from collections import OrderedDict
 
 import streamlit as st
+from loguru import logger
 from streamlit.runtime.state.session_state_proxy import SessionStateProxy
 
 from streamlit_chat_handler.types import StreamlitChatElement
@@ -142,9 +143,12 @@ class StreamlitChatHandler:
             role = element_list[0].role
             with st.chat_message(role):
                 for element in element_list:
-                    response[list(chat_element)[count]] = getattr(st, element.type)(
-                        element.content, *element.args, **element.kwargs
-                    )
+                    try:
+                        response[list(chat_element)[count]] = getattr(st, element.type)(
+                            element.content, *element.args, **element.kwargs
+                        )
+                    except Exception as err:
+                        logger.warning(f"Error rendering element {element} in key {list(chat_element)[count]}: {err}")
                     count += 1
         return response
 
