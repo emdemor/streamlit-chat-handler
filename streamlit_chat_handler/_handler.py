@@ -100,6 +100,7 @@ class StreamlitChatHandler:
 
         if render:
             return chat_element.render()
+        return self
 
     def render_last(self) -> None:
         """Render the last added chat element."""
