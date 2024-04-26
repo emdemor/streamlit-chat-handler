@@ -66,14 +66,14 @@ class StreamlitChatHandler:
 
     def append(
         self,
-        role: Literal["user", "assistant"],
-        type: str,
-        content: Any,
+        role: Literal["user", "assistant"] = None,
+        type: str = None,
+        content: Any = None,
         index: str | None = None,
         render: bool = False,
         chat_element: StreamlitChatElement | None = None,
         *args,
-        **kwargs
+        **kwargs,
     ) -> Any | None:
         """Append a new chat element to the session state.
 
@@ -90,15 +90,22 @@ class StreamlitChatHandler:
         if index is None:
             index = uuid.uuid4().hex
 
-
         if not chat_element:
-            chat_element = StreamlitChatElement(
-                role=role,
-                type=type,
-                content=content,
-                args=args,
-                kwargs=kwargs,
+
+            args_were_passed = all(
+                [_check_argument(arg) for arg in (role, type, content)]
             )
+
+            if args_were_passed:
+                chat_element = StreamlitChatElement(
+                    role=role,
+                    type=type,
+                    content=content,
+                    args=args,
+                    kwargs=kwargs,
+                )
+            else:
+                raise ValueError("Missing required arguments for StreamlitChatElement.")
 
         self.session_state[self.elements_label][index] = chat_element
 
@@ -113,7 +120,9 @@ class StreamlitChatHandler:
 
     def render(self) -> "StreamlitChatHandler":
         """Render all chat elements in the session."""
-        self.rendered_elements = self._render_elements(self.session_state[self.elements_label])
+        self.rendered_elements = self._render_elements(
+            self.session_state[self.elements_label]
+        )
         return self
 
     def _init_session_state(self) -> None:
@@ -151,7 +160,9 @@ class StreamlitChatHandler:
                             element.content, *element.args, **element.kwargs
                         )
                     except Exception as err:
-                        logger.warning(f"Error rendering element {element} in key {list(chat_element)[count]}: {err}")
+                        logger.warning(
+                            f"Error rendering element {element} in key {list(chat_element)[count]}: {err}"
+                        )
                     count += 1
         return response
 
@@ -210,3 +221,9 @@ def _group_elements_by_role(
         grouped_elements.append(current_group)
 
     return grouped_elements
+
+
+def _check_argument(argument: Any):
+    if argument is not None:
+        return True
+    return False
