@@ -62,7 +62,7 @@ class StreamlitChatHandler:
         self.session_state = session_state
         self.session_id = session_id
         self._init_session_state()
-        self.rendered_elements: OrderedDict[str, Any] | None = None
+        self.rendered_elements: OrderedDict[str, Any] | None = OrderedDict({})
 
     def append(
         self,
