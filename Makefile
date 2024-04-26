@@ -1,6 +1,8 @@
-release: # https://pypi.org/manage/account/token/ 
-	@echo "Sending to PyPI..."
+upload: # https://pypi.org/manage/account/token/ 
 	twine upload dist/*
+
+release: clean build-pkg upload clean
+	@echo "Sending to PyPI..."
 
 build-pkg: clean
 	@echo "Building package"

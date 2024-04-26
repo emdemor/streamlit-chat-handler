@@ -71,6 +71,7 @@ class StreamlitChatHandler:
         content: Any,
         index: str | None = None,
         render: bool = False,
+        chat_element: StreamlitChatElement | None = None,
         *args,
         **kwargs
     ) -> Any | None:
@@ -89,13 +90,15 @@ class StreamlitChatHandler:
         if index is None:
             index = uuid.uuid4().hex
 
-        chat_element = StreamlitChatElement(
-            role=role,
-            type=type,
-            content=content,
-            args=args,
-            kwargs=kwargs,
-        )
+
+        if not chat_element:
+            chat_element = StreamlitChatElement(
+                role=role,
+                type=type,
+                content=content,
+                args=args,
+                kwargs=kwargs,
+            )
 
         self.session_state[self.elements_label][index] = chat_element
 

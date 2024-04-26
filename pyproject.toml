@@ -13,7 +13,7 @@ keywords = ["sample", "setuptools", "development"]
 authors = [
   {name = "Eduardo Messias de Morais", email = "emdemor415@gmail.com" },
 ]
-version = "0.0.5"
+version = "0.0.6"
 dynamic = ["dependencies"]
 
 [project.optional-dependencies]
