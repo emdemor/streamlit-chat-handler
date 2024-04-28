@@ -21,10 +21,24 @@ if prompt := st.chat_input("Digite aqui..."):
 
     with st.spinner("Processando..."):
         sleep(1)
+
+
+        container = "expander" if chat_handler.step_counter % 2 == 0 else "popover"
+        cont_kwargs = {"label": "Teste",  "expanded": True} if chat_handler.step_counter % 2 == 0 else {"label": "Teste"}
+
         chat_handler.append(
             role="assistant",
             type="markdown",
             content=f'{chat_handler.step_counter} - resposta',
+            parent=container,
+            parent_kwargs=cont_kwargs,
             render=True,
         )
 
+        chat_handler.append(
+            role="assistant",
+            type="markdown",
+            content=f'{chat_handler.step_counter} - resposta',
+            parent= "expander",
+            parent_kwargs={"label": "Elemento renderizado a posteriori",  "expanded": True},
+        )

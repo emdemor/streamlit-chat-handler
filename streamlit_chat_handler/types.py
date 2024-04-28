@@ -24,8 +24,11 @@ class StreamlitChatElement(BaseModel):
     role: Literal["user", "assistant"]
     type: str
     content: Any
+    parent: str | None = None
     args: List[Any] = Field(default_factory=list)
     kwargs: Dict[str, Any] = Field(default_factory=dict)
+    parent_args: List[Any] = Field(default_factory=list)
+    parent_kwargs: Dict[str, Any] = Field(default_factory=dict)
 
     def render(self):
         """Render the chat element using the specified Streamlit widget.
@@ -41,6 +44,7 @@ class StreamlitChatElement(BaseModel):
             # Assuming an instance `chat_element` with type 'text':
             chat_element.render()  # This would render the content using `st.text()`.
         """
-        with st.chat_message(self.role):
-            response = getattr(st, self.type)(self.content, *self.args, **self.kwargs)
-            return response
+
+        chat_message = st.chat_message(self.role)
+        _parent = getattr(chat_message, self.parent)(*self.parent_args, **self.parent_kwargs) if self.parent else chat_message
+        return getattr(_parent, self.type)(self.content, *self.args, **self.kwargs)

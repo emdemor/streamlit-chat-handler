@@ -55,6 +55,7 @@ class StreamlitChatHandler:
             instance.session_state = session_state
             instance.session_id = session_id
             instance._init_session_state()
+            instance.step_counter = -1
         return cls._instances[session_id]
 
     def __init__(self, session_state: SessionStateProxy, session_id: str):
@@ -63,6 +64,7 @@ class StreamlitChatHandler:
         self.session_id = session_id
         self._init_session_state()
         self.rendered_elements: OrderedDict[str, Any] | None = OrderedDict({})
+        self.step_counter += 1
 
     def append(
         self,
@@ -72,6 +74,9 @@ class StreamlitChatHandler:
         index: str | None = None,
         render: bool = False,
         chat_element: StreamlitChatElement | None = None,
+        parent: str | None = None,
+        parent_args: Tuple[Any, ...] = (),
+        parent_kwargs: dict[str, Any] = {},
         *args,
         **kwargs,
     ) -> Any | None:
@@ -87,31 +92,30 @@ class StreamlitChatHandler:
         Raises:
             ValueError: If an unsupported type is provided.
         """
-        if index is None:
-            index = uuid.uuid4().hex
+
+        index = self._set_index(index)
 
         if not chat_element:
-
-            args_were_passed = all(
-                [_check_argument(arg) for arg in (role, type, content)]
+            chat_element = self._get_chat_element(
+                role,
+                type,
+                content,
+                parent,
+                parent_args,
+                parent_kwargs,
+                *args,
+                **kwargs,
             )
-
-            if args_were_passed:
-                chat_element = StreamlitChatElement(
-                    role=role,
-                    type=type,
-                    content=content,
-                    args=args,
-                    kwargs=kwargs,
-                )
-            else:
-                raise ValueError("Missing required arguments for StreamlitChatElement.")
 
         self.session_state[self.elements_label][index] = chat_element
 
         if render:
             return chat_element.render()
         return self
+
+    def increment_step_counter(self) -> None:
+        """Finish the current step."""
+        self.step_counter += 1
 
     def render_last(self) -> None:
         """Render the last added chat element."""
@@ -129,6 +133,47 @@ class StreamlitChatHandler:
         """Initialize the session state for storing chat elements if it doesn't already exist."""
         if self.elements_label not in self.session_state:
             self.session_state[self.elements_label] = OrderedDict({})
+
+    def _set_index(self, index: str | None) -> str:
+        """Set the index for the chat element.
+
+        Args:
+            index: The index to set.
+
+        Returns:
+            The set index.
+        """
+        if index is None:
+            index = uuid.uuid4().hex
+        index = f"{str(self.step_counter).zfill(6)}{index}"
+        return index
+
+    def _get_chat_element(
+        self,
+        role: Literal["user", "assistant"] = None,
+        type: str = None,
+        content: Any = None,
+        parent: str | None = None,
+        parent_args: Tuple[Any, ...] = (),
+        parent_kwargs: dict[str, Any] = {},
+        *args,
+        **kwargs,
+    ):
+        args_were_passed = all([_check_argument(arg) for arg in (role, type, content)])
+
+        if args_were_passed:
+            return StreamlitChatElement(
+                role=role,
+                type=type,
+                content=content,
+                parent=parent,
+                parent_args=parent_args,
+                parent_kwargs=parent_kwargs,
+                args=args,
+                kwargs=kwargs,
+            )
+        else:
+            raise ValueError("Missing required arguments for StreamlitChatElement.")
 
     @staticmethod
     def _render_elements(
@@ -153,17 +198,25 @@ class StreamlitChatHandler:
         count = 0
         for element_list in element_groups:
             role = element_list[0].role
-            with st.chat_message(role):
-                for element in element_list:
-                    try:
-                        response[list(chat_element)[count]] = getattr(st, element.type)(
-                            element.content, *element.args, **element.kwargs
+            chat_message = st.chat_message(role)
+            for element in element_list:
+                try:
+                    parent = (
+                        getattr(chat_message, element.parent)(
+                            *element.parent_args, **element.parent_kwargs
                         )
-                    except Exception as err:
-                        logger.warning(
-                            f"Error rendering element {element} in key {list(chat_element)[count]}: {err}"
-                        )
-                    count += 1
+                        if element.parent
+                        else chat_message
+                    )
+                    response[list(chat_element)[count]] = getattr(parent, element.type)(
+                        element.content, *element.args, **element.kwargs
+                    )
+                except Exception as err:
+                    logger.warning(
+                        f"Error rendering element {element} in key {list(chat_element)[count]}: {err}"
+                    )
+                count += 1
+
         return response
 
 
