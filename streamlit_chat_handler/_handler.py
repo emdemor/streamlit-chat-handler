@@ -73,10 +73,10 @@ class StreamlitChatHandler:
         content: Any = None,
         index: str | None = None,
         render: bool = False,
-        chat_element: StreamlitChatElement | None = None,
         parent: str | None = None,
         parent_args: Tuple[Any, ...] = (),
         parent_kwargs: dict[str, Any] = {},
+        chat_element: StreamlitChatElement | None = None,
         *args,
         **kwargs,
     ) -> Any | None:
@@ -145,7 +145,7 @@ class StreamlitChatHandler:
         """
         if index is None:
             index = uuid.uuid4().hex
-        index = f"{str(self.step_counter).zfill(6)}{index}"
+            return f"{str(self.step_counter).zfill(6)}{index}"
         return index
 
     def _get_chat_element(
