@@ -1,5 +1,5 @@
 import uuid
-from typing import Any, Literal, Tuple
+from typing import Any, List, Literal, Tuple
 from collections import OrderedDict
 
 import streamlit as st
@@ -113,6 +113,33 @@ class StreamlitChatHandler:
             return chat_element.render()
         return self
 
+    def append_multiple(
+        self, elements: list[StreamlitChatElement], render: bool = False
+    ) -> None:
+        """Append multiple chat elements to the session state."""
+
+        chat_element = OrderedDict({self._set_index(): element for element in elements})
+
+        for index, element in chat_element.items:
+            self.append(
+                role=element.role,
+                type=element.type,
+                content=element.content,
+                index=index,
+                render=False,  # Aqui, os componentes serão renderizados separadamente
+                parent=element.parent,
+                parent_args=element.parent_args,
+                parent_kwargs=element.parent_kwargs,
+            )
+
+        if render:
+            response = self._render_elements(chat_element)
+
+            for index, value in response.items():
+                if index in self.rendered_elements:
+                    del self.rendered_elements[index]
+                self.rendered_elements[index] = value
+
     def increment_step_counter(self) -> None:
         """Finish the current step."""
         self.step_counter += 1
@@ -175,9 +202,9 @@ class StreamlitChatHandler:
         else:
             raise ValueError("Missing required arguments for StreamlitChatElement.")
 
-    @staticmethod
     def _render_elements(
-        chat_element: StreamlitChatElement | OrderedDict[str, StreamlitChatElement]
+        self,
+        chat_element: StreamlitChatElement | OrderedDict[str, StreamlitChatElement],
     ) -> OrderedDict[str, Any]:
         """Render chat elements, handling both individual elements and collections.
 
@@ -189,7 +216,7 @@ class StreamlitChatHandler:
         """
 
         if isinstance(chat_element, StreamlitChatElement):
-            chat_element = OrderedDict({uuid.uuid4().hex: chat_element})
+            chat_element = OrderedDict({self._set_index(): chat_element})
 
         chat_element_list = [v for v in chat_element.values()]
         element_groups = _group_elements_by_role(chat_element_list)
