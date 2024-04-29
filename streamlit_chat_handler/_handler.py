@@ -120,7 +120,7 @@ class StreamlitChatHandler:
 
         chat_element = OrderedDict({self._set_index(): element for element in elements})
 
-        for index, element in chat_element.items:
+        for index, element in chat_element.items():
             self.append(
                 role=element.role,
                 type=element.type,
