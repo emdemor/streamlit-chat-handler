@@ -27,8 +27,8 @@ class StreamlitChatElement(BaseModel):
     parent: str | None = None
     args: List[Any] = Field(default_factory=list)
     kwargs: Dict[str, Any] = Field(default_factory=dict)
-    parent_args: List[Any] = Field(default_factory=list)
-    parent_kwargs: Dict[str, Any] = Field(default_factory=dict)
+    parent_args: List[Any] | None = None
+    parent_kwargs: Dict[str, Any] | None = None
 
     def render(self):
         """Render the chat element using the specified Streamlit widget.

@@ -161,7 +161,7 @@ class StreamlitChatHandler:
         if self.elements_label not in self.session_state:
             self.session_state[self.elements_label] = OrderedDict({})
 
-    def _set_index(self, index: str | None) -> str:
+    def _set_index(self, index: str | None = None) -> str:
         """Set the index for the chat element.
 
         Args:
