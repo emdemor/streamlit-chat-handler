@@ -93,16 +93,17 @@ class StreamlitChatHandler:
             ValueError: If an unsupported type is provided.
         """
 
-        index = self._set_index(index)
+        index = self._set_index(index, chat_element)
 
         if not chat_element:
             chat_element = self._get_chat_element(
-                role,
-                type,
-                content,
-                parent,
-                parent_args,
-                parent_kwargs,
+                role=role,
+                type=type,
+                content=content,
+                parent=parent,
+                index=index,
+                parent_args=parent_args,
+                parent_kwargs=parent_kwargs,
                 *args,
                 **kwargs,
             )
@@ -118,7 +119,7 @@ class StreamlitChatHandler:
     ) -> None:
         """Append multiple chat elements to the session state."""
 
-        chat_element = OrderedDict({self._set_index(): element for element in elements})
+        chat_element = OrderedDict({self._set_index(chat_element=e): e for e in elements})
 
         for index, element in chat_element.items():
             self.append(
@@ -126,7 +127,7 @@ class StreamlitChatHandler:
                 type=element.type,
                 content=element.content,
                 index=index,
-                render=False,  # Aqui, os componentes serão renderizados separadamente
+                render=element.index,  # Aqui, os componentes serão renderizados separadamente
                 parent=element.parent,
                 parent_args=element.parent_args,
                 parent_kwargs=element.parent_kwargs,
@@ -161,7 +162,7 @@ class StreamlitChatHandler:
         if self.elements_label not in self.session_state:
             self.session_state[self.elements_label] = OrderedDict({})
 
-    def _set_index(self, index: str | None = None) -> str:
+    def _set_index(self, index: str | None = None, chat_element: StreamlitChatElement | None = None) -> str:
         """Set the index for the chat element.
 
         Args:
@@ -170,9 +171,23 @@ class StreamlitChatHandler:
         Returns:
             The set index.
         """
+
+        index_was_passed = index is not None
+        element_was_passed = chat_element is not None
+        element_has_index = (chat_element.index is not None) if element_was_passed else False
+
+        if element_was_passed:
+            if index_was_passed and element_has_index and (index != chat_element.index):
+                raise ValueError(
+                    "Cannot pass both an index and a StreamlitChatElement with an index."
+                )
+
+        if element_has_index and not index_was_passed:
+            index = chat_element.index
+
         if index is None:
-            index = uuid.uuid4().hex
-            return f"{str(self.step_counter).zfill(6)}{index}"
+            return uuid.uuid4().hex
+    
         return index
 
     def _get_chat_element(
@@ -181,6 +196,7 @@ class StreamlitChatHandler:
         type: str = None,
         content: Any = None,
         parent: str | None = None,
+        index: str | None = None,
         parent_args: Tuple[Any, ...] = (),
         parent_kwargs: dict[str, Any] = {},
         *args,
@@ -196,6 +212,7 @@ class StreamlitChatHandler:
                 parent=parent,
                 parent_args=parent_args,
                 parent_kwargs=parent_kwargs,
+                index=index,
                 args=args,
                 kwargs=kwargs,
             )

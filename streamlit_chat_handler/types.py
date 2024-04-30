@@ -25,6 +25,7 @@ class StreamlitChatElement(BaseModel):
     type: str
     content: Any
     parent: str | None = None
+    index: str | None = None
     args: List[Any] = Field(default_factory=list)
     kwargs: Dict[str, Any] = Field(default_factory=dict)
     parent_args: List[Any] | None = None
